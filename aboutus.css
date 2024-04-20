@@ -1,0 +1,65 @@
+/* Global styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure the body takes up at least the full viewport height */
+}
+
+/* Navbar styles */
+.tm-header {
+    background-color: teal;
+    color: white;
+    padding: 5px 20px; /* Adjust padding as needed */
+    height:80px /* Make the navbar rounded */
+}
+
+.tm-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tm-nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.tm-nav ul li {
+    margin-left: 10px;
+}
+
+.tm-nav ul li:first-child {
+    margin-left: 0;
+}
+
+.tm-nav ul li a {
+    color: black;
+    text-decoration: none;
+    padding: 10px;
+}
+
+.tm-nav img {
+    width: 100px;
+    margin-right: 200px; /* Adjust spacing between logo and links */
+}
+
+/* Main content styles */
+.tm-main {
+    flex: 1; /* Allow the main content to grow to fill available space */
+    background-color: skyblue;
+    padding: 20px;
+    color: black;
+}
+
+/* Footer styles */
+.tm-footer {
+    background-color: black;
+    color: white;
+    padding: 20px;
+    margin-top: auto; /* Push the footer to the bottom */
+}
