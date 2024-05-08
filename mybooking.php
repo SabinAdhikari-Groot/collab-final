@@ -17,6 +17,17 @@ $bookings = [];
 while ($row = $result->fetch_assoc()) {
     $bookings[] = $row;
 }
+
+// Fetch payment details for the logged-in user
+$sql1 = "SELECT * FROM payment_details WHERE username = ?";
+$stmt1 = $conn->prepare($sql1);
+$stmt1->bind_param("s", $email);
+$stmt1->execute();
+$result1 = $stmt1->get_result();
+$payments = [];
+while ($row1 = $result1->fetch_assoc()) {
+    $payments[$row1['booking_id']] = $row1; // Store payment details indexed by booking ID
+}
 ?>
 
 <!DOCTYPE html>
@@ -25,9 +36,22 @@ while ($row = $result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings</title>
-    <link rel="stylesheet" href="mybooking.css"> 
+    <link rel="stylesheet" href="staff_dashboard.css">
 </head>
 <body>
+<nav class="navbar">
+    <div class="container">
+        <h1 class="logo"><img src="./images/logo.png" alt="Logo"></h1>
+        <ul class="nav-links">
+            <li><a href="nhomepage.html">Home</a></li>
+            <li><a href="mybooking.php">My Bookings</a></li>
+            <li><a href="dashboard.html">Book</a></li>
+            <li><a href="naboutus.html">About Us</a></li>
+            <li><a href="ncontactus.html">Contact us</a></li>
+            <li><a href="logout.php">Logout</a></li>
+        </ul>
+    </div>
+</nav> 
     <h1>My Bookings</h1>
     <table>
         <thead>
@@ -39,6 +63,7 @@ while ($row = $result->fetch_assoc()) {
                 <th>Number of Guests</th>
                 <th>Bed Preference</th>
                 <th>Price</th>
+                <th>Payment Status</th>
             </tr>
         </thead>
         <tbody>
@@ -51,6 +76,16 @@ while ($row = $result->fetch_assoc()) {
                     <td><?php echo $booking['guest_number']; ?></td>
                     <td><?php echo $booking['bed_preference']; ?></td>
                     <td>$<?php echo $booking['price']; ?></td>
+                    <td>
+                        <?php 
+                            // Check if payment exists for this booking
+                            if (isset($payments[$booking['id']])) {
+                                echo $payments[$booking['id']]['payment_status'];
+                            } else {
+                                echo "pending";
+                            }
+                        ?>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>

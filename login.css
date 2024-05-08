@@ -83,22 +83,4 @@ button {
     cursor: pointer;
 }
 
-.forgot-pw {
-    display: block;
-    text-align: center;
-    margin-top: 10px;
-    color: #666;
-}
 
-#userTypeContainer {
-    display: flex;
-    align-items: center;
-}
-
-#userType {
-    width: calc(100% - 12px);
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-top: 5px;
-}

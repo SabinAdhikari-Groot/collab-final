@@ -7,19 +7,30 @@ session_start();
 // Retrieve email from session
 $email = $_SESSION['email'];
 
-// Perform the deletion
-$sql = "DELETE FROM booking WHERE email = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $email);
+// Disable foreign key checks
+$sqlDisableFK = "SET foreign_key_checks = 0";
+$conn->query($sqlDisableFK);
+
+// Perform the deletion for bookings
+$sqlBooking = "DELETE FROM booking WHERE email = ?";
+$stmtBooking = $conn->prepare($sqlBooking);
+$stmtBooking->bind_param("s", $email);
 
 // Execute the statement
-if ($stmt->execute()) {
-    echo "success";
-} else {
-    echo "error";
-}
+$success = $stmtBooking->execute();
+
+// Enable foreign key checks
+$sqlEnableFK = "SET foreign_key_checks = 1";
+$conn->query($sqlEnableFK);
 
 // Close the statement and the database connection
-$stmt->close();
+$stmtBooking->close();
 $conn->close();
+
+// Check if the deletion was successful
+if ($success) {
+    echo "Bookings canceled successfully.";
+} else {
+    echo "Error canceling bookings.";
+}
 ?>

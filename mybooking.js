@@ -3,7 +3,7 @@ function backToHomepage() {
 }
 
 function pay() {
-    window.location.href = "payforbooking.html";
+    window.location.href = "process_payment.php";
 }
 
 function cancelBooking() {
@@ -12,7 +12,6 @@ function cancelBooking() {
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) {
-                    alert("Booking cancelled successfully.");
                     location.reload();
                 } else {
                     alert("Error cancelling booking.");

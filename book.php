@@ -25,17 +25,6 @@ if ($result->num_rows > 0) {
 } else {
     echo "No user found with this email.";
 }
-$sql_check_booking = "SELECT * FROM booking WHERE email = ?";
-$stmt_check_booking = $conn->prepare($sql_check_booking);
-$stmt_check_booking->bind_param("s", $email);
-$stmt_check_booking->execute();
-$result_check_booking = $stmt_check_booking->get_result();
-
-if ($result_check_booking->num_rows > 0) {
-    header("Location: dashboard.html");
-    echo "You have already booked. Please check your bookings.";
-    exit();
-}
 
 // Retrieve other booking details from the form submission
 $arrivalDate = $_POST['arrival-date'];
@@ -51,26 +40,60 @@ $price = 0;
 $arrivalDateFormatted = date('Y-m-d', strtotime($arrivalDate));
 $departureDateFormatted = date('Y-m-d', strtotime($departureDate));
 
-// Calculate price based on bed preference
+// Check if arrival date is before today
+if (strtotime($arrivalDateFormatted) < strtotime(date('Y-m-d'))) {
+    echo "Arrival date cannot be before today.";
+    exit();
+}
+
+// Check if departure date is at least 2 days from arrival date
+if (strtotime($departureDateFormatted) <= strtotime($arrivalDateFormatted) + (2 * 24 * 60 * 60)) {
+    echo "Departure date must be at least 2 days after arrival date.";
+    exit();
+}
+
+// Calculate number of days of stay
+$numberOfDays = (strtotime($departureDateFormatted) - strtotime($arrivalDateFormatted)) / (24 * 60 * 60);
+
+// Calculate price based on bed preference and number of days
 if ($bedPreference === "single") {
-    $price += 5;
+    $price += (5 * $numberOfDays);
 } elseif ($bedPreference === "double") {
-    $price += 8;
+    $price += (8 * $numberOfDays);
 }
 
 // Calculate price based on food preference and number of guests
 if ($foodPreference === "yes") {
-    $price += ($guestNumber * 7); // $7 per guest
+    $price += ($guestNumber * 7 * $numberOfDays); // $7 per guest per day
 }
 
+// Prepare and execute SQL query to check number of guests in the room
+$sql_check_guests = "SELECT SUM(guest_number) AS total_guests FROM booking WHERE room_number = ?";
+$stmt_check_guests = $conn->prepare($sql_check_guests);
+$stmt_check_guests->bind_param("i", $roomNumber);
+$stmt_check_guests->execute();
+$result_check_guests = $stmt_check_guests->get_result();
+$row_check_guests = $result_check_guests->fetch_assoc();
+$totalGuests = $row_check_guests['total_guests'];
+
+// Check if total guests exceed the room capacity (12 guests)
+if (($totalGuests + $guestNumber) > 12) {
+    echo "Booking cannot be done in this room. Room capacity exceeded.";
+    exit();
+}
+
+// Prepare and execute SQL query to check if there are bookings with departure dates before today
+$sql_auto_delete = "DELETE FROM booking WHERE departure_date < CURRENT_DATE()";
+$conn->query($sql_auto_delete);
+
 // Prepare and execute SQL query to insert booking details into the 'booking' table
-$sql = "INSERT INTO booking (email, first_name, last_name, arrival_date, departure_date, gender, room_number, guest_number, bed_preference, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("sssssssssi", $email, $first_name, $last_name, $arrivalDateFormatted, $departureDateFormatted, $gender, $roomNumber, $guestNumber, $bedPreference, $price);
-$stmt->execute();
+$sql_insert_booking = "INSERT INTO booking (email, first_name, last_name, arrival_date, departure_date, gender, room_number, guest_number, bed_preference, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$stmt_insert_booking = $conn->prepare($sql_insert_booking);
+$stmt_insert_booking->bind_param("ssssssiisd", $email, $first_name, $last_name, $arrivalDateFormatted, $departureDateFormatted, $gender, $roomNumber, $guestNumber, $bedPreference, $price);
+$stmt_insert_booking->execute();
 
 // Check if the insertion was successful
-if ($stmt->affected_rows > 0) {
+if ($stmt_insert_booking->affected_rows > 0) {
     echo "Booking successful! Total price: $" . $price;
     header("Location: mybooking.php");
 } else {
